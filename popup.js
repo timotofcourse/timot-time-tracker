@@ -32,8 +32,11 @@ function formatTime(milliseconds) {
   const seconds = Math.floor(milliseconds / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
   
-  if (hours > 0) {
+  if (days >0){
+    return `${days}d`
+  } else if (hours > 0) {
     const remainingMinutes = minutes % 60;
     return `${hours}h ${remainingMinutes}m`;
   } else if (minutes > 0) {
