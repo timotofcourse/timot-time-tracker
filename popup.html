@@ -3,115 +3,257 @@
 <head>
   <meta charset="utf-8">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
-      width: 400px;
-      min-height: 500px;
+      width: 420px;
+      min-height: 550px;
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      font-family: 'Orbitron', monospace;
+      background: 
+        radial-gradient(circle at 20% 80%, #0a0a0a 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, #1a0033 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, #003366 0%, transparent 50%),
+        linear-gradient(135deg, #000000 0%, #0d1117 50%, #000000 100%);
+      color: #00ff88;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 136, 0.03) 2px,
+          rgba(0, 255, 136, 0.03) 4px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .cyber-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.3;
+      pointer-events: none;
     }
     
     .header {
       text-align: center;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 25px 20px;
+      background: 
+        linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(255, 0, 136, 0.1) 100%);
+      border-bottom: 2px solid #00ff88;
+      box-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.3),
+        inset 0 1px 0 rgba(0, 255, 136, 0.2);
+      position: relative;
+      z-index: 2;
+    }
+    
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00ff88, #ff0088, #00ff88, transparent);
+      animation: neonFlow 3s ease-in-out infinite;
     }
     
     .header h1 {
       margin: 0;
-      font-size: 24px;
-      font-weight: 600;
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      background: linear-gradient(45deg, #00ff88, #00ccff, #ff0088);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+      animation: glitch 2s infinite;
     }
     
     .header p {
-      margin: 5px 0 0 0;
+      margin: 8px 0 0 0;
+      font-size: 12px;
+      color: #00ccff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
       opacity: 0.8;
-      font-size: 14px;
     }
     
     .stats-overview {
-      padding: 20px;
+      padding: 25px 20px;
       text-align: center;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+      position: relative;
+      z-index: 2;
     }
     
     .stat-item {
       display: inline-block;
-      margin: 0 15px;
+      margin: 0 20px;
       text-align: center;
+      padding: 15px;
+      background: 
+        linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(255, 0, 136, 0.1));
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 8px;
+      box-shadow: 
+        0 0 15px rgba(0, 255, 136, 0.2),
+        inset 0 1px 0 rgba(0, 255, 136, 0.1);
     }
     
     .stat-number {
-      font-size: 28px;
-      font-weight: bold;
+      font-size: 32px;
+      font-weight: 900;
       display: block;
+      color: #00ff88;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+      animation: pulse 2s infinite;
     }
     
     .stat-label {
-      font-size: 12px;
-      opacity: 0.8;
-      margin-top: 2px;
+      font-size: 10px;
+      color: #00ccff;
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     
     .tabs {
       display: flex;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+      position: relative;
+      z-index: 2;
     }
     
     .tab {
       flex: 1;
-      padding: 12px;
+      padding: 15px;
       text-align: center;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
       border: none;
       background: none;
-      color: white;
+      color: #00ccff;
       font-size: 14px;
+      font-family: 'Orbitron', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      position: relative;
+    }
+    
+    .tab::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #00ff88, #ff0088);
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
     }
     
     .tab.active {
-      background: rgba(255, 255, 255, 0.2);
-      font-weight: 600;
+      color: #00ff88;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+      background: rgba(0, 255, 136, 0.1);
+    }
+    
+    .tab.active::before {
+      width: 80%;
     }
     
     .tab:hover {
-      background: rgba(255, 255, 255, 0.15);
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.05);
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
     }
     
     .content {
       padding: 20px;
       max-height: 300px;
       overflow-y: auto;
+      position: relative;
+      z-index: 2;
     }
     
     .site-item {
       display: flex;
       align-items: center;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin-bottom: 12px;
+      background: 
+        linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(255, 0, 136, 0.05));
+      border: 1px solid rgba(0, 255, 136, 0.2);
       border-radius: 8px;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .site-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+      transition: left 0.5s ease;
     }
     
     .site-item:hover {
-      background: rgba(255, 255, 255, 0.15);
+      border-color: #00ff88;
+      box-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.3),
+        inset 0 1px 0 rgba(0, 255, 136, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .site-item:hover::before {
+      left: 100%;
     }
     
     .site-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      margin-right: 12px;
-      background: rgba(255, 255, 255, 0.2);
+      width: 24px;
+      height: 24px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 6px;
+      margin-right: 15px;
+      background: rgba(0, 255, 136, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 14px;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
     }
     
     .site-info {
@@ -119,72 +261,136 @@
     }
     
     .site-name {
-      font-weight: 500;
+      font-weight: 700;
       font-size: 14px;
+      color: #00ff88;
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+      margin-bottom: 4px;
     }
     
     .site-time {
-      font-size: 12px;
+      font-size: 11px;
+      color: #00ccff;
       opacity: 0.8;
-      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     
     .time-display {
-      font-weight: 600;
-      font-size: 14px;
+      font-weight: 900;
+      font-size: 16px;
+      color: #ff0088;
+      text-shadow: 0 0 8px rgba(255, 0, 136, 0.6);
+      border: 1px solid rgba(255, 0, 136, 0.3);
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(255, 0, 136, 0.1);
     }
     
     .no-data {
       text-align: center;
-      opacity: 0.7;
-      padding: 40px 20px;
+      color: #00ccff;
+      padding: 50px 20px;
       font-style: italic;
+      font-size: 14px;
+      opacity: 0.7;
     }
     
     .export-section {
       padding: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      border-top: 1px solid rgba(0, 255, 136, 0.3);
       text-align: center;
+      position: relative;
+      z-index: 2;
     }
     
     .export-btn {
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(255, 0, 136, 0.2));
+      border: 2px solid #00ff88;
+      color: #00ff88;
+      padding: 12px 24px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 12px;
-      transition: background 0.3s;
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .export-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+      transition: left 0.5s ease;
     }
     
     .export-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
+      color: #000;
+      background: #00ff88;
+      box-shadow: 
+        0 0 25px rgba(0, 255, 136, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .export-btn:hover::before {
+      left: 100%;
     }
     
     ::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
     
     ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      border: 1px solid rgba(0, 255, 136, 0.2);
     }
     
     ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
+      background: linear-gradient(180deg, #00ff88, #ff0088);
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
     }
     
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5);
+      background: linear-gradient(180deg, #ff0088, #00ff88);
+      box-shadow: 0 0 15px rgba(255, 0, 136, 0.8);
+    }
+    
+    @keyframes glitch {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-2px); }
+      40% { transform: translateX(2px); }
+      60% { transform: translateX(-1px); }
+      80% { transform: translateX(1px); }
+    }
+    
+    @keyframes neonFlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
     }
   </style>
 </head>
 <body>
+  <div class="cyber-grid"></div>
   <div class="header">
-    <h1>⏱️ Time Tracker</h1>
-    <p>Understanding your digital habits</p>
+    <h1>◉ NEURAL.TRACK</h1>
+    <p>Digital Consciousness Analysis</p>
   </div>
   
   <div class="stats-overview">
@@ -204,11 +410,11 @@
   </div>
   
   <div class="content" id="content">
-    <div class="no-data">Start browsing to see your time tracking data!</div>
+    <div class="no-data">⚡ Initialize neural pathways... Start browsing to activate data streams! ⚡</div>
   </div>
   
   <div class="export-section">
-    <button class="export-btn" id="exportBtn">📊 Export Data</button>
+    <button class="export-btn" id="exportBtn">▣ EXTRACT DATA MATRIX</button>
   </div>
   
   <script src="popup.js"></script>

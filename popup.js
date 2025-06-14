@@ -44,23 +44,56 @@ function formatTime(milliseconds) {
 }
 
 function getDomainIcon(domain) {
-  // Simple favicon logic
+  // Cyberpunk-themed icons
   const iconMap = {
     'youtube.com': '🎥',
-    'google.com': '🔍',
-    'facebook.com': '📘',
-    'twitter.com': '🐦',
-    'instagram.com': '📷',
-    'linkedin.com': '💼',
-    'reddit.com': '📢',
-    'stackoverflow.com': '💻',
-    'github.com': '🐙',
-    'netflix.com': '🎬',
-    'amazon.com': '🛒',
-    'gmail.com': '📧'
+    'google.com': '🔎',
+    'facebook.com': '👤',
+    'twitter.com': '👤',
+    'instagram.com': '👤',
+    'linkedin.com': '👷',
+    'reddit.com': '👤',
+    'stackoverflow.com': '🖥️',
+    'github.com': '🖥️',
+    'gitlab.com': '🖥️',
+    'netflix.com': '🎥',
+    'amazon.com': '🛍️',
+    'ebay.com': '🛍️',
+    'gmail.com': '📧',
+    'discord.com': '💬',
+    'twitch.tv': '🎥',
+    'spotify.com': '🎵',
+    'tiktok.com': '🎥',
+    'kick.com': '🎥',
+    'mastodon.social': '👤',
+    'threads.com': '👤',
+    'primevideo.com': '🎥',
+    'crunchyroll.com': '🎥',
+    'aniwatchtv.to': '🎥',
+    'outlook.com': '📧',
+    'tuta.com': '📧',
+    'wikipedia.org': '📔',
+    'chatgpt.com': '🤖',
+    'characterai.com': '🤖',
+    'janitorai.com': '🤖',
+    'character-tavern.com': '🤖',
+    'flowgpt.com': '🤖',
+    'chub.ai': '🤖',
+    'emochi.com': '🤖',
+    'copilot.microsoft.com': '🤖',
+    'claude.ai': '🤖',
+    'guilded.gg': '💬',
+    'steam.com': '🎮',
+    'steampowered.com': '🎮',
+    'roblox.com': '🎮',
+    'epicgames.com': '🎮',
+    'gog.com': '🎮',
+    'itch.io': '🎮'
+    // Add brave search later and some other search engines
+
   };
   
-  return iconMap[domain] || '🌐';
+  return iconMap[domain] || '🌍';
 }
 
 function updateStats() {
@@ -93,7 +126,7 @@ function renderContent() {
     });
   
   if (sortedSites.length === 0) {
-    content.innerHTML = '<div class="no-data">No browsing data for this period yet!</div>';
+    content.innerHTML = '<div class="no-data">⚡ No active data streams detected in the neural network ⚡</div>';
     return;
   }
   
