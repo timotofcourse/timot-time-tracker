@@ -53,6 +53,7 @@ function getDomainIcon(domain) {
     'google.com': '🔎',
     'facebook.com': '👤',
     'twitter.com': '👤',
+    'x.com': '👤',
     'instagram.com': '👤',
     'linkedin.com': '👷',
     'reddit.com': '👤',
@@ -122,7 +123,14 @@ function getDomainIcon(domain) {
     'ubuntuunity.org': '🐧',
     'xubuntu.org': '🐧',
     'linuxmint.com': '🐧',
-    'zorin.com': '🐧'
+    'zorin.com': '🐧',
+    'protondb.com': '🎮',
+    'markdownguide.org': '📔',
+    'whatsapp.com': '💬',
+    'fandom.com': '📔',
+    't.me': '💬',
+    'chiptec.net': '🛍️',
+    'signal.org': '💬'
 
   };
   
