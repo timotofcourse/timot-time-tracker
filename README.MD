@@ -2,7 +2,7 @@
 
 **Track how you spend time on websites — privately, locally, and beautifully.**
 
-Timot Time Tracker is a Chrome extension that logs how much time you spend on different websites — all locally on your machine. No accounts, no sync, no spying. Just you and your data. This extension contains AI code.
+Timot's Time Tracker is a Chrome extension that logs how much time you spend on different websites — all locally on your machine. No accounts, no sync, no spying. Just you and your data. This extension contains AI code.
 
 ![Timot Time Tracker UI Screenshot 1](screenshots/poppup_000.png)
 ![Timot Time Tracker UI Screenshot 2](screenshots/poppup_001.png)
