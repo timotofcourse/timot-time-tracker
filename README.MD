@@ -1,4 +1,4 @@
-# ⏱️ Timot Time Tracker
+# ⏱️ Timot's Time Tracker
 
 **Track how you spend time on websites — privately, locally, and beautifully.**
 
