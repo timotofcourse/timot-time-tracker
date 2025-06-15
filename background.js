@@ -1,5 +1,4 @@
-let currentTab = null;
-let startTime = null;
+let activeTabs = new Map(); // tabId -> { domain, url, title, startTime }
 let isIdle = false;
 let trackingInterval = null;
 
@@ -106,14 +105,11 @@ async function saveTime(domain, timeSpent, title) {
 }
 
 // Start tracking
-function startTracking(tab) {
+async function startTracking(tab) {
   console.log('startTracking called with:', tab?.url);
   
-  // Stop current tracking first
-  stopTracking();
-  
-  if (!tab || !tab.url) {
-    console.log('No tab or URL provided');
+  if (!tab || !tab.url || !tab.id) {
+    console.log('No tab, URL, or ID provided');
     return;
   }
   
@@ -129,100 +125,66 @@ function startTracking(tab) {
     return;
   }
   
-  currentTab = {
+  // Check if already tracking this tab
+  if (activeTabs.has(tab.id)) {
+    return;
+  }
+  
+  activeTabs.set(tab.id, {
     domain: domain,
     url: tab.url,
-    title: tab.title || domain
-  };
+    title: tab.title || domain,
+    startTime: Date.now()
+  });
   
-  startTime = Date.now();
-  isIdle = false;
-  
-  console.log('🟢 Started tracking:', domain);
-  
-  // Save time every 10 seconds
-  trackingInterval = setInterval(async () => {
-    if (currentTab && startTime && !isIdle) {
-      const timeSpent = Date.now() - startTime;
-      if (timeSpent >= 1000) { // Only save if at least 1 second
-        await saveTime(currentTab.domain, timeSpent, currentTab.title);
-        startTime = Date.now(); // Reset for next interval
-      }
-    }
-  }, 10000);
-  
-  // Also save immediately after 3 seconds for quick feedback
-  setTimeout(async () => {
-    if (currentTab && startTime && !isIdle) {
-      const timeSpent = Date.now() - startTime;
-      if (timeSpent >= 1000) {
-        await saveTime(currentTab.domain, timeSpent, currentTab.title);
-        startTime = Date.now();
-      }
-    }
-  }, 3000);
+  console.log('🟢 Started tracking:', domain, 'on tab', tab.id);
 }
 
 // Stop tracking
-async function stopTracking() {
-  if (trackingInterval) {
-    clearInterval(trackingInterval);
-    trackingInterval = null;
-  }
-  
-  // Save final time
-  if (currentTab && startTime && !isIdle) {
-    const timeSpent = Date.now() - startTime;
-    if (timeSpent >= 1000) {
-      await saveTime(currentTab.domain, timeSpent, currentTab.title);
-      console.log('🔴 Stopped tracking:', currentTab.domain);
+async function stopTracking(tabId = null) {
+  if (tabId) {
+    // Stop tracking specific tab
+    const tabData = activeTabs.get(tabId);
+    if (tabData && !isIdle) {
+      const timeSpent = Date.now() - tabData.startTime;
+      if (timeSpent >= 1000) {
+        await saveTime(tabData.domain, timeSpent, tabData.title);
+        console.log('🔴 Stopped tracking:', tabData.domain, 'on tab', tabId);
+      }
     }
+    activeTabs.delete(tabId);
+  } else {
+    // Stop all tracking
+    for (const [id, tabData] of activeTabs) {
+      if (!isIdle) {
+        const timeSpent = Date.now() - tabData.startTime;
+        if (timeSpent >= 1000) {
+          await saveTime(tabData.domain, timeSpent, tabData.title);
+          console.log('🔴 Stopped tracking:', tabData.domain, 'on tab', id);
+        }
+      }
+    }
+    activeTabs.clear();
   }
-  
-  currentTab = null;
-  startTime = null;
 }
 
 // Tab activated
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   console.log('Tab activated:', activeInfo.tabId);
-  try {
-    const tab = await chrome.tabs.get(activeInfo.tabId);
-    startTracking(tab);
-  } catch (error) {
-    console.error('Error on tab activation:', error);
-  }
+  await updateActiveTabsTracking();
 });
 
 // Tab updated
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // Only handle active tabs
-  if (!tab.active) return;
-  
-  try {
-    // URL changed
-    if (changeInfo.url) {
-      console.log('URL changed to:', changeInfo.url);
-      const newDomain = getDomain(changeInfo.url);
-      
-      // If domain changed, restart tracking
-      if (!currentTab || currentTab.domain !== newDomain) {
-        startTracking(tab);
-      } else if (currentTab) {
-        // Same domain, just update URL and title
-        currentTab.url = changeInfo.url;
-        currentTab.title = tab.title || currentTab.title;
-      }
-    }
-    
-    // Tab finished loading and we're not tracking anything
-    if (changeInfo.status === 'complete' && !currentTab) {
-      console.log('Tab completed loading, starting tracking');
-      startTracking(tab);
-    }
-  } catch (error) {
-    console.error('Error on tab update:', error);
+  // Handle audible state changes or URL changes
+  if (changeInfo.audible !== undefined || changeInfo.url || changeInfo.status === 'complete') {
+    await updateActiveTabsTracking();
   }
+});
+
+// Handle tab removal
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  await stopTracking(tabId);
 });
 
 // Window focus changed
@@ -249,11 +211,11 @@ chrome.idle.onStateChanged.addListener(async (state) => {
   console.log('Idle state changed:', state);
   try {
     if (state === 'idle' || state === 'locked') {
-      // Going idle - save current time
-      if (currentTab && startTime && !isIdle) {
-        const timeSpent = Date.now() - startTime;
+      // Going idle - save current time for all active tabs
+      for (const [tabId, tabData] of activeTabs) {
+        const timeSpent = Date.now() - tabData.startTime;
         if (timeSpent >= 1000) {
-          await saveTime(currentTab.domain, timeSpent, currentTab.title);
+          await saveTime(tabData.domain, timeSpent, tabData.title);
         }
       }
       isIdle = true;
@@ -267,25 +229,29 @@ chrome.idle.onStateChanged.addListener(async (state) => {
       // Coming back from idle
       isIdle = false;
       
-      if (currentTab) {
-        // Resume tracking
-        startTime = Date.now();
+      // Resume tracking for all active tabs
+      for (const [tabId, tabData] of activeTabs) {
+        tabData.startTime = Date.now();
+      }
+      
+      // Set up tracking interval
+      if (!trackingInterval) {
         trackingInterval = setInterval(async () => {
-          if (currentTab && startTime && !isIdle) {
-            const timeSpent = Date.now() - startTime;
-            if (timeSpent >= 1000) {
-              await saveTime(currentTab.domain, timeSpent, currentTab.title);
-              startTime = Date.now();
+          if (!isIdle && activeTabs.size > 0) {
+            const now = Date.now();
+            for (const [tabId, tabData] of activeTabs) {
+              const timeSpent = now - tabData.startTime;
+              if (timeSpent >= 1000) {
+                await saveTime(tabData.domain, timeSpent, tabData.title);
+                tabData.startTime = now;
+              }
             }
           }
         }, 10000);
-      } else {
-        // Get current tab and start tracking
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tabs && tabs[0]) {
-          startTracking(tabs[0]);
-        }
       }
+      
+      // Update active tabs tracking
+      await updateActiveTabsTracking();
     }
   } catch (error) {
     console.error('Error handling idle state:', error);
@@ -324,3 +290,27 @@ setInterval(async () => {
     console.error('Error checking storage:', error);
   }
 }, 30000);
+
+async function updateActiveTabsTracking() {
+  try {
+    const tabs = await chrome.tabs.query({});
+    const currentlyActive = new Set();
+    
+    for (const tab of tabs) {
+      // Track if tab is active OR audible (playing sound)
+      if ((tab.active || tab.audible) && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+        currentlyActive.add(tab.id);
+        await startTracking(tab);
+      }
+    }
+    
+    // Stop tracking tabs that are no longer active or audible
+    for (const tabId of activeTabs.keys()) {
+      if (!currentlyActive.has(tabId)) {
+        await stopTracking(tabId);
+      }
+    }
+  } catch (error) {
+    console.error('Error updating active tabs:', error);
+  }
+}
