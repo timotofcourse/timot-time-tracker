@@ -76,7 +76,7 @@ In the future this extension will be in the chrome web store but for now this is
 
 - activeTab – to access info on the active tab
 
-- <all_urls> – to track time spent across all websites
+- all_urls – to track time spent across all websites
 
 ---
 
