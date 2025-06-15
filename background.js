@@ -1,6 +1,7 @@
 let currentTab = null;
 let startTime = null;
 let isIdle = false;
+let trackingInterval = null;
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
@@ -29,30 +30,15 @@ function getDomain(url) {
   }
 }
 
-// Start tracking time for a website
-function startTracking(tab) {
-  if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-    return;
-  }
-  
-  currentTab = {
-    domain: getDomain(tab.url),
-    url: tab.url,
-    title: tab.title || 'Unknown'
-  };
-  startTime = Date.now();
-  isIdle = false;
-}
-
-// Stop tracking and save time
-async function stopTracking() {
+// Save accumulated time to storage
+async function saveCurrentTime() {
   if (!currentTab || !startTime || isIdle) {
     return;
   }
   
   const timeSpent = Date.now() - startTime;
   
-  // Only track if more than 1 second
+  // Only save if more than 1 second
   if (timeSpent < 1000) {
     return;
   }
@@ -97,6 +83,51 @@ async function stopTracking() {
   timeData[currentTab.domain].title = currentTab.title;
   
   await chrome.storage.local.set({ timeData });
+  
+  // Reset start time to continue tracking
+  startTime = Date.now();
+}
+
+// Start tracking time for a website
+function startTracking(tab) {
+  // Stop any existing tracking
+  stopTracking();
+  
+  if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+    return;
+  }
+  
+  const domain = getDomain(tab.url);
+  
+  // Only restart tracking if it's a different domain or we weren't tracking
+  if (!currentTab || currentTab.domain !== domain) {
+    currentTab = {
+      domain: domain,
+      url: tab.url,
+      title: tab.title || 'Unknown'
+    };
+    startTime = Date.now();
+    isIdle = false;
+    
+    // Set up periodic saving every 5 seconds
+    trackingInterval = setInterval(saveCurrentTime, 5000);
+  }
+}
+
+// Stop tracking and save final time
+async function stopTracking() {
+  // Clear the interval
+  if (trackingInterval) {
+    clearInterval(trackingInterval);
+    trackingInterval = null;
+  }
+  
+  // Save any remaining time
+  await saveCurrentTime();
+  
+  // Reset tracking variables
+  currentTab = null;
+  startTime = null;
 }
 
 // Handle tab activation
@@ -108,8 +139,24 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 // Handle tab updates (URL changes)
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.active) {
-    await stopTracking();
+  // Only react to URL changes on the active tab
+  if (changeInfo.url && tab.active) {
+    const newDomain = getDomain(changeInfo.url);
+    
+    // If domain changed, stop current tracking and start new
+    if (!currentTab || currentTab.domain !== newDomain) {
+      await stopTracking();
+      startTracking(tab);
+    }
+    // If same domain, just update the URL and title
+    else if (currentTab) {
+      currentTab.url = changeInfo.url;
+      currentTab.title = tab.title || currentTab.title;
+    }
+  }
+  
+  // Handle tab becoming active after loading
+  if (changeInfo.status === 'complete' && tab.active && !currentTab) {
     startTracking(tab);
   }
 });
@@ -132,14 +179,28 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 // Handle idle state
 chrome.idle.onStateChanged.addListener(async (state) => {
   if (state === 'idle' || state === 'locked') {
-    await stopTracking();
+    // Save current time before going idle
+    await saveCurrentTime();
     isIdle = true;
+    
+    // Stop the tracking interval but keep currentTab for resume
+    if (trackingInterval) {
+      clearInterval(trackingInterval);
+      trackingInterval = null;
+    }
   } else if (state === 'active') {
     isIdle = false;
-    // Get current active tab
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]) {
-      startTracking(tabs[0]);
+    
+    // Resume tracking if we have a current tab
+    if (currentTab) {
+      startTime = Date.now();
+      trackingInterval = setInterval(saveCurrentTime, 5000);
+    } else {
+      // Get current active tab if we lost tracking
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tabs[0]) {
+        startTracking(tabs[0]);
+      }
     }
   }
 });
