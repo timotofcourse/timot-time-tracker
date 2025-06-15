@@ -19,6 +19,14 @@ function setupEventListeners() {
   
   // Export button
   document.getElementById('exportBtn').addEventListener('click', exportData);
+
+  // Import button
+  document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+  });
+
+  // File input change
+  document.getElementById('importFile').addEventListener('change', importData);
 }
 
 async function loadData() {
@@ -210,6 +218,43 @@ function exportData() {
   link.click();
   
   URL.revokeObjectURL(url);
+}
+
+async function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const importedData = JSON.parse(text);
+    
+    // Validate the imported data structure
+    if (!importedData.data || typeof importedData.data !== 'object') {
+      alert('Invalid data format');
+      return;
+    }
+    
+    // Merge with existing data
+    const result = await chrome.storage.local.get(['timeData']);
+    const currentData = result.timeData || {};
+    
+    // Merge the data (imported data takes precedence for conflicts)
+    const mergedData = { ...currentData, ...importedData.data };
+    
+    // Save merged data
+    await chrome.storage.local.set({ timeData: mergedData });
+    
+    // Refresh the display
+    await loadData();
+    
+    // Reset file input
+    event.target.value = '';
+    
+    console.log('Data imported successfully');
+  } catch (error) {
+    console.error('Import error:', error);
+    alert('Error importing data: ' + error.message);
+  }
 }
 
 // Refresh data every 5 seconds when popup is open

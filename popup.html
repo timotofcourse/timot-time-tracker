@@ -320,6 +320,8 @@
       box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
       position: relative;
       overflow: hidden;
+      margin: 5px 10px;
+      display: inline-block;
     }
     
     .export-btn::before {
@@ -415,6 +417,8 @@
   
   <div class="export-section">
     <button class="export-btn" id="exportBtn">▣ EXTRACT DATA MATRIX</button>
+    <button class="export-btn" id="importBtn">▦ INJECT DATA STREAM</button>
+    <input type="file" id="importFile" accept=".json" style="display: none;">
   </div>
   
   <script src="popup.js"></script>
